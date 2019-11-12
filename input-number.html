@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>数字输入框组件</title>
+    <script src="vue.js"></script>
+    <!-- <script src="input-number.js"></script> -->
+</head>
+<style>
+    [v-cloak] {
+        display: none
+    }
+</style>
+
+<body>
+    <div id="app">
+        <input-number v-model='values' v-bind:step='0.1' v-bind:max='999' v-bind:min='-999'></input-number>
+    </div>
+    <script>
+
+        function isValueNumber(value) {
+            return !isNaN(value);
+        }
+        // @input  监听input框内容 一变就触发handleChange()    @keyup 监听键盘按键
+        Vue.component('input-number', {
+            template: `<div class='input-number'> 
+                 <input :value='currentValue' @input='handleChange' @keyup='handleArrow'>    
+                 <button @click='handleDown' :disabled='currentValue<=min'>-</button>
+                 <button @click='handleUp' :disabled='currentValue>=max'>+</button>
+               </div>`,
+            props: {
+                max: {
+                    type: Number,
+                    default: Infinity
+                },
+                min: {
+                    type: Number,
+                    default: -Infinity
+                },
+                value: {
+                    type: Number,
+                    default: 0
+                },
+                step: {
+                    type: Number,
+                    default: 1
+                }
+            },
+            data() {
+                return {
+                    currentValue: this.value,
+                    point: 0
+                }
+            },
+            methods: {
+                handleDown: function () { //数字减
+                    if (this.currentValue <= this.min) return;
+                    this.currentValue = (parseFloat(this.currentValue) - parseFloat(this.step)).toFixed(this.point);
+                },
+                handleUp: function () { //数字加
+                    if (this.currentValue >= this.max) return;
+                    this.currentValue = (parseFloat(this.currentValue) + parseFloat(this.step)).toFixed(this.point);
+                },
+                updateValue(val) { //判定值是否在区间内
+                    if (val > this.max) { val = this.max };
+                    if (val < this.min) { val = this.min };
+                    this.currentValue = val;
+                },
+                handleChange(event) {  //输入框值改变事件
+                    let val = event.target.value.trim();
+                    let max = this.max;
+                    let min = this.min;
+                    if (isValueNumber(val)) { //判断是否为数字
+                        val = Number(val);
+                        if (val > max) {
+                            this.currentValue = max;
+                            event.target.value = max;
+                        } else if (val < min) {
+                            this.currentValue = min;
+                            event.target.value = min;
+                        } else {
+                            this.currentValue = val;
+                        }
+                    } else {
+                        event.target.value = this.currentValue;  //如果输入的不是数字，则返回上一个数字
+                    }
+                },
+                handleArrow(e) {
+                    if (e.code === 'ArrowUp') {
+                        this.handleUp();
+                    } else if (e.code === 'ArrowDown') {
+                        this.handleDown();
+                    }
+                }
+            },
+            mounted() {
+                this.updateValue(this.value);
+                if ((String(this.step).indexOf(".") + 1) > 0) {
+                    this.point = (String(this.step).length) - (String(this.step).indexOf(".") + 1);  //判断小数点有几位
+                }
+            },
+        })
+
+        let app = new Vue({
+            el: '#app',
+            data: {
+                values: 0
+            }
+        })
+    </script>
+</body>
+
+</html>
